@@ -42,7 +42,7 @@ type Controller struct {
 }
 
 func (c Controller) Send(ctx context.Context, command Command) (int, error) {
-	logrus.Traceln(command.String() + " called")
+	logrus.Tracef("%s called\n", command)
 
 	return c.Device.Control(0x21, 0x09, 0, 0, []byte{
 		0x02,

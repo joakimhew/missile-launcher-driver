@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"os"
@@ -11,66 +10,11 @@ import (
 
 	"github.com/google/gousb"
 	pb "github.com/joakimhew/missile-launcher-driver/internal/api/driver"
+	"github.com/joakimhew/missile-launcher-driver/internal/server"
+
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
-
-type server struct {
-	Controller ct.Controller
-	pb.UnimplementedDriverServer
-}
-
-
-func (s *server) Left(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Left)
-}
-
-func (s *server) Up(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Up)
-}
-
-func (s *server) Right(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Right)
-}
-
-func (s *server) Down(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Down)
-}
-
-func (s *server) UpLeft(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.UpLeft)
-}
-
-func (s *server) DownLeft(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.DownLeft)
-}
-
-func (s *server) UpRight(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.UpRight)
-}
-
-func (s *server) DownRight(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.DownRight)
-}
-
-func (s *server) Stop(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Stop)
-}
-
-func (s *server) Fire(ctx context.Context, req *pb.CommandRequest) (*pb.CommandReply, error) {
-	return sendCommand(ctx, ct.Fire)
-}
-
-func sendCommand(ctx context.Context, command ct.Command) (*pb.CommandReply, error) {
-	d, err := ct.Send(ctx, command)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.CommandReply{
-		Message: string(d),
-	}, nil
-}
 
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
@@ -104,7 +48,7 @@ func main() {
 	const vendorID = 0x2123
 	const productID = 0x1010
 
-	dev, err = ctx.OpenDeviceWithVIDPID(vendorID, productID)
+	dev, err := ctx.OpenDeviceWithVIDPID(vendorID, productID)
 	if dev == nil {
 		logrus.WithFields(logrus.Fields{
 			"vendorID":  fmt.Sprintf("0x%x", vendorID),
@@ -144,10 +88,10 @@ func main() {
 	}
 	s := grpc.NewServer()
 	logrus.Debug("Registering gRPC server")
-	pb.RegisterDriverServer(s, &server{
+	pb.RegisterDriverServer(s, &server.Server{
 		Controller: &ct.Controller{
-			Device: dev
-		} 
+			Device: dev,
+		},
 	})
 
 	logrus.WithField("port", port).Debug("Serving gRPC")
