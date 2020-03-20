@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package driver;
+
+service Driver {
+  rpc Left(CommandRequest) returns (CommandReply) {}
+  rpc Up(CommandRequest) returns (CommandReply) {}
+  rpc Right(CommandRequest) returns (CommandReply) {}
+  rpc Down(CommandRequest) returns (CommandReply) {}
+  rpc UpLeft(CommandRequest) returns (CommandReply) {}
+  rpc DownLeft(CommandRequest) returns (CommandReply) {}
+  rpc UpRight(CommandRequest) returns (CommandReply) {}
+  rpc DownRight(CommandRequest) returns (CommandReply) {}
+  rpc Stop(CommandRequest) returns (CommandReply) {}
+  rpc Fire(CommandRequest) returns (CommandReply) {}
+}
+
+message CommandRequest {}
+
+message CommandReply { string message = 1; }
